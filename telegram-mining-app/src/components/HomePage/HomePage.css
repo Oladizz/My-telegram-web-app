@@ -1,0 +1,47 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* padding-top: 20px; Removed, covered by global .content padding-top and .home-page padding */
+  /* color: #333; Removed, covered by global App.css */
+}
+
+.home-page h2 {
+  /* color: green; Removed, covered by global App.css */
+  /* Additional specific styles for HomePage h2 can go here if needed */
+}
+
+.mining-circle-container {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.mining-circle {
+  width: 200px;
+  height: 200px;
+  background-color: #4CAF50; /* Green background - specific to this element */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 5px solid darkgreen; /* Dark green border - specific to this element */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease; /* For click effect */
+}
+
+.mining-circle:active {
+    transform: scale(0.95); /* Click effect */
+}
+
+.mining-text {
+  color: white; /* White text - specific to this element */
+  font-size: 1.5em;
+  text-align: center;
+}
+
+.home-page p {
+  font-size: 1.2em;
+  color: #555; /* Slightly different from default #333, so keep it */
+}

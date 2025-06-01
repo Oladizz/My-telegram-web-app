@@ -1,1 +1,155 @@
 /* CSS for ReferralPage */
+
+.referral-page {
+  padding: 20px;
+  text-align: center;
+  color: #39FF14; /* Neon Green text */
+  background-color: black; /* Black background */
+  min-height: calc(100vh - 70px - 40px); /* Full viewport height minus nav and some padding */
+}
+
+.referral-page h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-shadow: 0 0 5px #39FF14;
+}
+
+.referral-instructions {
+  background-color: #0a0a0a;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border: 1px solid #2aaa0f; /* Darker neon green */
+  margin-bottom: 25px;
+  text-align: left;
+  display: inline-block; /* Fit content */
+  max-width: 600px;
+  width: 90%; /* Responsive */
+}
+
+.referral-instructions p {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+
+.referral-instructions ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.referral-instructions ul li {
+  margin-bottom: 8px;
+  font-size: 1em;
+  color: #cccccc; /* Lighter grey for list items */
+}
+
+.referral-instructions ul li::before { /* Custom bullet */
+  content: '✅'; /* Or any other icon/character */
+  color: #39FF14;
+  margin-right: 10px;
+}
+
+.referral-instructions ul li strong {
+  color: #8eff70; /* Lighter neon green for emphasis */
+}
+
+.referral-code-section,
+.referral-link-section,
+.referral-stats {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #111; /* Slightly lighter black for sections */
+  border-radius: 8px;
+  border: 1px solid #39FF14;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+}
+
+.referral-page h3 {
+  font-size: 1.4em; /* Slightly larger */
+  color: #8eff70; /* Lighter neon green for section titles */
+  margin-bottom: 15px;
+}
+
+.referral-code-display {
+  font-size: 1.6em; /* Larger code */
+  font-weight: bold;
+  color: white;
+  background-color: #000000; /* Black background for code */
+  padding: 12px 18px;
+  border-radius: 4px;
+  display: inline-block; /* Fit content */
+  border: 1px solid #39FF14;
+  letter-spacing: 1px;
+}
+
+.referral-link-display-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Space between input and button */
+  max-width: 500px;
+  margin: 0 auto; /* Center container if it's narrower than section */
+}
+
+.referral-link-input {
+  flex-grow: 1;
+  padding: 12px; /* More padding */
+  font-size: 1em;
+  background-color: black;
+  color: #39FF14;
+  border: 1px solid #39FF14;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.copy-link-button {
+  /* Inherits global button styles from App.css */
+  padding: 12px 18px; /* Match input padding */
+  font-size: 1em;
+  min-width: 90px;
+}
+
+.referral-stats p {
+  font-size: 1.2em; /* Larger stats text */
+  margin: 10px 0;
+  color: #cccccc;
+}
+
+.referral-stats strong {
+  color: white;
+  font-size: 1.1em;
+}
+
+.referral-footer {
+  margin-top: 30px;
+  font-size: 1em;
+  font-style: italic;
+  color: #aaa;
+}
+
+/* Loading and Error states (can be global or specific) */
+/* Ensure these are defined if not globally available */
+.loading-spinner {
+  border: 4px solid #222;
+  border-top: 4px solid #39FF14;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #ff4d4d;
+  background-color: #2a0000;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ff4d4d;
+  margin-top: 15px;
+  display: inline-block; /* So it doesn't take full width unless needed */
+}

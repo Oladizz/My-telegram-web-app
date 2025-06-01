@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth"; // If using Firebase Auth
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions"; // Import Functions services
 
 // TODO: Replace with your actual Firebase project configuration
 const firebaseConfig = {
@@ -16,5 +17,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // If using Firebase Auth
+const functions = getFunctions(app); // Initialize Firebase Functions
 
-export { db, auth }; // Export auth if used, otherwise just db
+// Optional: Connect to Functions Emulator in development
+// if (process.env.NODE_ENV === 'development') {
+//   try {
+//     console.log("Connecting to Firebase Functions Emulator: localhost:5001");
+//     connectFunctionsEmulator(functions, "localhost", 5001);
+//   } catch (e) {
+//     console.error("Error connecting to Functions Emulator:", e);
+//     // It's useful to log this but not break the app if the emulator isn't running.
+//     // The app will then try to connect to the deployed functions.
+//   }
+// }
+
+export { db, auth, functions }; // Export functions

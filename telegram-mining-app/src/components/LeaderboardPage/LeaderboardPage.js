@@ -1,60 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './LeaderboardPage.css';
-
-const sampleLeaderboardData = [
-  { id: 1, username: 'UserAlpha', points: 15000 },
-  { id: 2, username: 'BetaGamer', points: 12500 },
-  { id: 3, username: 'CharlieMiner', points: 10000 },
-  { id: 4, username: 'DeltaPlayer', points: 17000 },
-  { id: 5, username: 'EchoStriker', points: 9500 },
-  { id: 6, username: 'FoxtrotPro', points: 12500 }, // Duplicate points for testing sort stability
-  { id: 7, username: 'GammaUser', points: 20000 },
-];
-
-// Helper to sort and rank data
-const getRankedData = (data) => {
-  return data
-    .sort((a, b) => b.points - a.points) // Sort by points descending
-    .map((user, index) => ({
-      ...user,
-      rank: index + 1, // Assign rank based on sorted order
-    }));
-};
+import { db } from '../../firebaseConfig'; // Adjusted path
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
 function LeaderboardPage() {
   const [leaderboardData, setLeaderboardData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLeaderboardData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const usersCol = collection(db, 'users');
+      const q = query(usersCol, orderBy('points', 'desc'), limit(100)); // Get top 100 users
+
+      const querySnapshot = await getDocs(q);
+      const users = querySnapshot.docs.map((doc, index) => ({
+        id: doc.id,
+        rank: index + 1, // Assign rank based on Firestore order
+        ...doc.data(),
+      }));
+      setLeaderboardData(users);
+    } catch (e) {
+      console.error("Error fetching leaderboard data:", e);
+      setError("Failed to load leaderboard. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setLeaderboardData(getRankedData(sampleLeaderboardData));
-    // In a real app, you might fetch this data from an API:
-    // fetch('/api/leaderboard')
-    //   .then(res => res.json())
-    //   .then(data => setLeaderboardData(getRankedData(data)));
-  }, []);
+    fetchLeaderboardData();
+  }, [fetchLeaderboardData]);
+
+  if (isLoading) {
+    return <div className="leaderboard-page"><div className="loading-spinner"></div><p>Loading leaderboard...</p></div>;
+  }
+
+  if (error) {
+    return <div className="leaderboard-page"><p className="error-message">{error}</p></div>;
+  }
 
   return (
     <div className="leaderboard-page">
       <h2>Leaderboard</h2>
-      <div className="leaderboard-container">
-        <table className="leaderboard-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Username</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboardData.map((user) => (
-              <tr key={user.id}>
-                <td>{user.rank}</td>
-                <td>{user.username}</td>
-                <td>{user.points.toLocaleString()}</td>
+      {leaderboardData.length === 0 && !isLoading && <p>Leaderboard is currently empty.</p>}
+      {leaderboardData.length > 0 && (
+        <div className="leaderboard-container">
+          <table className="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {leaderboardData.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.rank}</td>
+                  <td>{user.firstName || 'N/A'}</td>
+                  <td>{user.username || 'Anonymous'}</td>
+                  <td>{user.points ? user.points.toLocaleString() : 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

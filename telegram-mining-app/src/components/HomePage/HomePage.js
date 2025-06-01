@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './HomePage.css';
-import { db } from '../../firebaseConfig'; // Adjusted path
-import { doc, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { db, functions } from '../../firebaseConfig'; // Import functions
+import { httpsCallable } from 'firebase/functions'; // Import httpsCallable
+import { sendNotificationToBot } from '../../App';
+import { doc, getDoc, setDoc, updateDoc, Timestamp, increment, writeBatch } from "firebase/firestore";
 
 const BASE_MINING_RATE_PER_DAY = 12; // Tokens per 24-hour cycle
 const TOTAL_MINING_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const REFERRER_BONUS_POINTS = 1000; // Example points for the referrer
+const REFERRED_USER_BONUS_POINTS = 500; // Example points for the new user
 
 function formatTimeLeft(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -29,17 +33,19 @@ function HomePage() {
 
   const [timeLeftForFullMineMs, setTimeLeftForFullMineMs] = useState(TOTAL_MINING_DURATION_MS);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClaiming, setIsClaiming] = useState(false); // New state for claim loading
   const [error, setError] = useState(null);
 
   const calculatedMiningRate = BASE_MINING_RATE_PER_DAY * miningRateModifier;
 
   // Fetch User Data or Create New User
-  const fetchUserData = useCallback(async (userId, userDetails) => {
+  const fetchUserData = useCallback(async (userId, userDetails, startParam) => { // Added startParam
     setIsLoading(true);
     setError(null);
     const userRef = doc(db, 'users', String(userId));
     try {
-      const docSnap = await getDoc(userRef);
+      let docSnap = await getDoc(userRef); // Use let for potential re-assignment after referral bonus
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         setTotalPoints(data.points || 0);
@@ -63,18 +69,35 @@ function HomePage() {
         if (initialProgress >= 100) setIsMining(false); // Ensure mining stops if loaded full
 
       } else {
+        let initialPoints = 0;
+        let referredBy = null;
+        let referrerId = null;
+
+        if (startParam && startParam.startsWith('ref_')) {
+          referrerId = startParam.substring(4);
+          if (referrerId && referrerId !== String(userId)) { // User cannot refer themselves
+            referredBy = referrerId;
+            initialPoints += REFERRED_USER_BONUS_POINTS; // Bonus for the new user
+            console.log(`User ${userId} referred by ${referrerId}. Awarding ${REFERRED_USER_BONUS_POINTS} points.`);
+          } else {
+            referrerId = null; // Invalid self-referral
+          }
+        }
+
         const newUserData = {
           userId: String(userId),
           username: userDetails?.username || '',
           firstName: userDetails?.firstName || 'User',
-          points: 0,
+          points: initialPoints,
           miningRateModifier: 1.0,
-          lastMinedTime: null, // No mining done yet
+          lastMinedTime: null,
           currentMiningProgress: 0,
-          lastSessionStartTime: null, // Not started yet
+          lastSessionStartTime: null,
           createdAt: Timestamp.now(),
+          ...(referredBy && { referredBy: referredBy }), // Add referredBy field if applicable
         };
         await setDoc(userRef, newUserData);
+
         setTotalPoints(newUserData.points);
         setMiningRateModifier(newUserData.miningRateModifier);
         setLastMinedTime(newUserData.lastMinedTime);
@@ -82,6 +105,24 @@ function HomePage() {
         setLastSessionStartTimeDb(newUserData.lastSessionStartTime);
         setProgress(0);
         setTimeLeftForFullMineMs(TOTAL_MINING_DURATION_MS);
+
+        // If referred, try to award bonus to referrer (client-side simulation, ideally a Cloud Function)
+        if (referrerId) {
+          try {
+            const referrerRef = doc(db, 'users', referrerId);
+            // Use a batch or transaction for atomicity if possible, though here it's a separate operation.
+            // For now, direct update. Cloud Function would be better.
+            await updateDoc(referrerRef, {
+              points: increment(REFERRER_BONUS_POINTS),
+              // Optionally, add to a subcollection of `referredUsers` on the referrer's doc.
+            });
+            console.log(`Awarded ${REFERRER_BONUS_POINTS} points to referrer ${referrerId}.`);
+          } catch (refError) {
+            console.error(`Failed to award bonus to referrer ${referrerId}:`, refError);
+            // Store this failure for later processing by a Cloud Function if needed.
+            // e.g., addDoc(collection(db, 'pendingReferralBonuses'), { referrerId, newUserId: userId, error: refError.message, createdAt: Timestamp.now() });
+          }
+        }
       }
     } catch (e) {
       console.error("Error fetching/creating user data:", e);
@@ -96,91 +137,126 @@ function HomePage() {
     const tg = window.Telegram.WebApp;
     tg.ready();
     const user = tg.initDataUnsafe?.user;
+    const startParam = tg.initDataUnsafe?.start_param; // Get start_param
+
     if (user && user.id) {
       setTelegramUser(user);
-      fetchUserData(user.id, user);
+      fetchUserData(user.id, user, startParam); // Pass startParam to fetchUserData
     } else {
       setError("Unable to identify Telegram user. Please try launching from Telegram.");
       setIsLoading(false);
-      // console.error("Telegram user data not available.", tg.initDataUnsafe);
     }
   }, [fetchUserData]);
 
-  // Save User Progress to Firebase
-  const saveUserProgress = useCallback(async () => {
-    if (!telegramUser || !telegramUser.id) return;
+  // Save User Progress (Mid-session) - Direct Firestore write
+  const saveMidSessionProgress = useCallback(async () => {
+    if (!telegramUser || !telegramUser.id || progress >= 100) return false;
 
+    setIsLoading(true); // Indicate general loading for mid-session save
     const userRef = doc(db, 'users', String(telegramUser.id));
-    let pointsToAdd = tokensEarnedThisSession;
-    let newProgress = progress;
-    let newLastMinedTime = lastMinedTime;
-    let newLastSessionStartTime = lastSessionStartTimeDb;
-
-    if (progress >= 100) {
-      pointsToAdd = calculatedMiningRate * (progress/100) - (currentMiningProgressDb/100 * calculatedMiningRate); // only add delta
-      newProgress = 0; // Reset progress for next cycle
-      newLastMinedTime = Timestamp.now();
-      newLastSessionStartTime = null; // Ready for a new session
-    } else {
-       // If stopping mid-session, pointsToAdd is how much was visually accumulated this session
-       // newProgress is the current visual progress
-       // newLastSessionStartTime should ideally be the *actual* start time of this visual session
-       // For simplicity, if isMining was true, we assume current lastSessionStartTimeDb is correct or will be updated on start.
-    }
-
     try {
       await updateDoc(userRef, {
-        points: totalPoints + pointsToAdd,
-        currentMiningProgress: newProgress,
-        lastMinedTime: newLastMinedTime,
-        lastSessionStartTime: newLastSessionStartTime,
-        // Potentially update other fields like miningRateModifier if it changes
+        // Only update progress and session start time if actively mining mid-cycle
+        currentMiningProgress: progress,
+        lastSessionStartTime: lastSessionStartTimeDb || Timestamp.now(), // Use existing or set new if somehow null
+        // Do NOT update total points here, that's for cycle completion.
       });
-      setTotalPoints(totalPoints + pointsToAdd);
-      setCurrentMiningProgressDb(newProgress);
-      setLastMinedTime(newLastMinedTime);
-      setLastSessionStartTimeDb(newLastSessionStartTime);
-      setTokensEarnedThisSession(0); // Reset session earnings
-      if (newProgress === 0) { // If cycle completed and reset
-        setProgress(0);
-        setTimeLeftForFullMineMs(TOTAL_MINING_DURATION_MS);
-      }
-      console.log("Progress saved.");
+      setCurrentMiningProgressDb(progress); // Sync local DB state with visual progress
+      // tokensEarnedThisSession is visual, no direct DB field for it mid-session.
+      console.log("Mid-session progress saved.");
+      setIsLoading(false);
+      return true;
     } catch (e) {
-      console.error("Error saving user progress:", e);
-      setError("Failed to save progress. Please check connection.");
+      console.error("Error saving mid-session progress:", e);
+      setError("Failed to save current progress. Please check connection.");
+      setIsLoading(false);
+      return false;
     }
-  }, [telegramUser, progress, tokensEarnedThisSession, totalPoints, calculatedMiningRate, lastMinedTime, lastSessionStartTimeDb, currentMiningProgressDb]);
+  }, [telegramUser, progress, lastSessionStartTimeDb]);
+
+
+  // Claim Mining Rewards via Cloud Function
+  const claimMiningRewards = async () => {
+    if (!telegramUser || !telegramUser.id) {
+      setError("User not identified. Cannot claim rewards.");
+      return;
+    }
+    if (progress < 100) {
+      // This case should ideally not be hit if button is "Start New Cycle" only at 100%
+      console.log("Not yet at 100% to claim.");
+      return;
+    }
+
+    setIsClaiming(true); // Specific loading state for this action
+    setError(null);
+
+    try {
+      const claimRewardsFunction = httpsCallable(functions, 'claimMiningRewards');
+      const dataToSend = {
+        // telegramInitData: window.Telegram.WebApp.initData, // Send for server-side validation
+        clientTimestamp: new Date().toISOString(),
+        // lastKnownClientProgress: progress, // Could be useful for server to double check state
+      };
+
+      console.log("Calling 'claimMiningRewards' Cloud Function...");
+      const result = await claimRewardsFunction(dataToSend);
+      console.log('Claim rewards result:', result.data);
+
+      if (result.data && result.data.success) {
+        // Update local state based on the function's response
+        setTotalPoints(result.data.newTotalPoints);
+        setCurrentMiningProgressDb(0); // Reset by function
+        setLastMinedTime(Timestamp.now()); // Reflect claim time, or use server timestamp from result
+        setLastSessionStartTimeDb(null); // Reset by function
+        setProgress(0); // Reset visual progress
+        setTokensEarnedThisSession(0);
+        setTimeLeftForFullMineMs(TOTAL_MINING_DURATION_MS);
+        setIsMining(false); // Stop mining after claim
+
+        sendNotificationToBot(telegramUser.id, 'MINING_CYCLE_COMPLETE', { pointsEarned: result.data.pointsAwarded });
+        alert(`Rewards claimed! You earned ${result.data.pointsAwarded.toFixed(4)} points.`);
+      } else {
+        throw new Error(result.data?.message || "Failed to claim rewards. Unknown error from function.");
+      }
+    } catch (error) {
+      console.error("Error calling claimMiningRewards function:", error);
+      setError(error.message || "Failed to claim rewards. Please try again.");
+      // Potentially, refetch user data to ensure client is in sync with server state if claim failed.
+      // fetchUserData(telegramUser.id, telegramUser, window.Telegram.WebApp.initDataUnsafe?.start_param);
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
 
   // Mining Simulation Effect
   useEffect(() => {
     let intervalId;
-    if (isMining && progress < 100) {
-      // Determine the actual start time for this session's progress calculation
-      // This could be now, or based on lastSessionStartTimeDb if resuming
-      const sessionEffectiveStartTime = (lastSessionStartTimeDb && currentMiningProgressDb > 0 && currentMiningProgressDb < 100)
-                                     ? lastSessionStartTimeDb.toMillis()
-                                     : Date.now();
+    if (isMining && progress < 100 && telegramUser?.id) {
+      const visualProgressAlreadyMadeThisCycle = currentMiningProgressDb || 0;
+      const actualStartOfThisMiningSegmentMs = Date.now() - (progress - visualProgressAlreadyMadeThisCycle) / 100 * TOTAL_MINING_DURATION_MS;
 
-      // Adjust for existing progress if resuming a session
-      const progressOffsetMs = (currentMiningProgressDb / 100) * TOTAL_MINING_DURATION_MS;
-      const adjustedStartTime = sessionEffectiveStartTime - progressOffsetMs;
-
-      intervalId = setInterval(() => {
-        const elapsedTimeSinceAdjustedStart = Date.now() - adjustedStartTime;
-        const currentVisualProgress = Math.min(100, (elapsedTimeSinceAdjustedStart / TOTAL_MINING_DURATION_MS) * 100);
+      intervalId = setInterval(async () => {
+        const elapsedTimeThisSegment = Date.now() - actualStartOfThisMiningSegmentMs;
+        let currentVisualProgress = visualProgressAlreadyMadeThisCycle + (elapsedTimeThisSegment / TOTAL_MINING_DURATION_MS) * 100;
+        currentVisualProgress = Math.min(100, currentVisualProgress);
 
         setProgress(currentVisualProgress);
-        // Calculate tokens earned *this visual session* based on progress increase
-        const progressIncrease = currentVisualProgress - (currentMiningProgressDb > 0 ? currentMiningProgressDb : 0);
-        setTokensEarnedThisSession((progressIncrease / 100) * calculatedMiningRate);
-        setTimeLeftForFullMineMs(Math.max(0, TOTAL_MINING_DURATION_MS - elapsedTimeSinceAdjustedStart));
+
+        const visualProgressIncreaseSinceLastDBSave = currentVisualProgress - (currentMiningProgressDb || 0);
+        setTokensEarnedThisSession((visualProgressIncreaseSinceLastDBSave / 100) * calculatedMiningRate);
+        setTimeLeftForFullMineMs(Math.max(0, TOTAL_MINING_DURATION_MS * (1 - currentVisualProgress / 100)));
 
         if (currentVisualProgress >= 100) {
           setIsMining(false);
-          // setTokensEarnedThisSession(calculatedMiningRate); // Full rate earned over the cycle
-          saveUserProgress(); // Auto-save/claim when full
+          // When 100% is reached, user needs to click "Start New Cycle" which now calls claimMiningRewards
+          // No automatic save/claim here anymore, button press will trigger it.
+          // We can save the 100% progress to DB though.
+          const userRef = doc(db, 'users', String(telegramUser.id));
+          try {
+            await updateDoc(userRef, { currentMiningProgress: 100, lastSessionStartTime: lastSessionStartTimeDb });
+            setCurrentMiningProgressDb(100);
+          } catch (e) { console.error("Error saving 100% progress pre-claim:", e); }
         }
       }, 1000);
     } else {
@@ -194,23 +270,21 @@ function HomePage() {
     }
     return () => {
       clearInterval(intervalId);
-      // Save progress on unmount if mining was active
-      // This check needs to be more robust, e.g. by checking a ref, as state might not be latest in cleanup
-      // if (isMiningRef.current) { saveUserProgress(); }
     };
-  }, [isMining, progress, calculatedMiningRate, saveUserProgress, lastSessionStartTimeDb, currentMiningProgressDb]);
+  }, [isMining, progress, calculatedMiningRate, lastSessionStartTimeDb, currentMiningProgressDb, telegramUser?.id]); // Added telegramUser.id
 
   // Effect for saving on unmount - using a ref for isMining
   const isMiningRef = React.useRef(isMining);
   useEffect(() => { isMiningRef.current = isMining; }, [isMining]);
   useEffect(() => {
     return () => {
-      if (isMiningRef.current && telegramUser?.id) {
-        console.log("Component unmounting, saving progress...");
-        saveUserProgress();
+      // Save mid-session progress if user was actively mining and progress is not 100%
+      if (isMiningRef.current && telegramUser?.id && progress < 100) {
+        console.log("Component unmounting, saving mid-session progress...");
+        saveMidSessionProgress();
       }
     }
-  }, [saveUserProgress, telegramUser]);
+  }, [saveMidSessionProgress, telegramUser, progress]); // Added progress to condition
 
 
   const handleMineButtonClick = async () => {
@@ -219,52 +293,40 @@ function HomePage() {
       return;
     }
 
-    if (progress >= 100) {
-      // Cycle is complete, user effectively "claims" by starting new cycle or if auto-claimed
-      // saveUserProgress() should have handled resetting progress in DB
-      // We re-initialize the visual state for a new cycle
-      setProgress(0);
-      setTokensEarnedThisSession(0);
-      setTimeLeftForFullMineMs(TOTAL_MINING_DURATION_MS);
-      setLastSessionStartTimeDb(Timestamp.now()); // Mark DB for new session start
-      setCurrentMiningProgressDb(0); // DB progress is 0 for new cycle
-
-      const userRef = doc(db, 'users', String(telegramUser.id));
-      try {
-        await updateDoc(userRef, { // Ensure DB reflects the new cycle start
-            currentMiningProgress: 0,
-            lastSessionStartTime: Timestamp.now(),
-            lastMinedTime: Timestamp.now() // Also update lastMinedTime as a full cycle was completed
-        });
-      } catch(e) { console.error("Error updating for new cycle:", e); }
-
-      setIsMining(true); // Start new cycle
+    if (progress >= 100) { // If cycle is full, button action is to claim.
+      await claimMiningRewards();
+      // After successful claim, state should be reset, allowing user to start a new cycle.
+      // The button text will change to "Start Mining" if claim was successful and progress reset.
       return;
     }
 
     const newIsMining = !isMining;
     setIsMining(newIsMining);
 
-    if (newIsMining) { // Starting to mine
+    if (newIsMining) { // Starting to mine (or resuming)
       const now = Timestamp.now();
-      setLastSessionStartTimeDb(now); // Set this for current session
-      // If progress is 0, this is a fresh start for the current DB cycle
-      if (progress === 0) setCurrentMiningProgressDb(0);
-
-      const userRef = doc(db, 'users', String(telegramUser.id));
-      try {
-        await updateDoc(userRef, { lastSessionStartTime: now, currentMiningProgress: progress }); // Save current progress as starting point
-      } catch (e) {
-        console.error("Error updating lastSessionStartTime:", e);
-        // Optionally revert isMining state or handle error
+      // Only update lastSessionStartTimeDb if it's a truly new session or progress was 0
+      if (!lastSessionStartTimeDb || progress === 0) {
+        setLastSessionStartTimeDb(now);
+        setCurrentMiningProgressDb(0); // Reset current DB progress for a fresh cycle start
+        const userRef = doc(db, 'users', String(telegramUser.id));
+        try {
+          // Ensure DB reflects this new session start if it's a truly new cycle
+          await updateDoc(userRef, { lastSessionStartTime: now, currentMiningProgress: 0 });
+        } catch (e) { console.error("Error setting new session start time:", e); }
+      } else {
+        // Resuming a session that was previously saved mid-progress
+        // lastSessionStartTimeDb should already be set from fetchUserData or previous saveMidSessionProgress
+        // currentMiningProgressDb should also be up-to-date
       }
-    } else { // Stopping mining
-      saveUserProgress();
+    } else { // Stopping mining (mid-session)
+      saveMidSessionProgress();
     }
   };
 
   const circleText = () => {
     if (isLoading) return "Loading...";
+    if (isClaiming) return "Claiming...";
     if (progress >= 100) return "Full!";
     if (isMining) return `${progress.toFixed(1)}%`;
     return "Start";
@@ -286,9 +348,9 @@ function HomePage() {
       </div>
       <div className="mining-circle-container">
         <div
-          className={`mining-circle ${isLoading || (!telegramUser?.id) ? 'disabled' : ''}`}
+          className={`mining-circle ${isLoading || isClaiming || (!telegramUser?.id) ? 'disabled' : ''}`}
           style={{ backgroundImage: `conic-gradient(white ${progress * 3.6}deg, transparent ${progress * 3.6}deg)` }}
-          onClick={(!isLoading && telegramUser?.id) ? handleMineButtonClick : undefined}
+          onClick={(!isLoading && !isClaiming && telegramUser?.id) ? handleMineButtonClick : undefined}
         >
           <span className="mining-text">{circleText()}</span>
         </div>
@@ -296,9 +358,9 @@ function HomePage() {
       <button
         onClick={handleMineButtonClick}
         className="mine-button"
-        disabled={isLoading || (!telegramUser?.id)}
+        disabled={isLoading || isClaiming || (!telegramUser?.id)}
       >
-        {isMining ? 'Stop Mining' : (progress >= 100 ? 'Start New Cycle' : 'Start Mining')}
+        {progress >= 100 ? 'Claim Rewards & Start New Cycle' : (isMining ? 'Stop Mining' : 'Start Mining')}
       </button>
     </div>
   );

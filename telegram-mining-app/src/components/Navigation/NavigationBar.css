@@ -3,8 +3,8 @@
   bottom: 0;
   left: 0; /* Ensure it starts from the left edge */
   width: 100%;
-  background-color: white;
-  border-top: 1px solid #ccc;
+  background-color: black; /* Black background */
+  border-top: 1px solid #39FF14; /* Neon Green border top */
   display: flex;
   justify-content: center;
   padding: 10px 0;
@@ -28,12 +28,15 @@
 
 .bottom-nav ul li a {
   text-decoration: none;
-  color: green; /* Green text */
+  color: #39FF14; /* Neon Green text */
   padding: 10px;
   display: block;
+  transition: color 0.3s ease, background-color 0.3s ease; /* Smooth transition */
 }
 
 .bottom-nav ul li a:hover,
-.bottom-nav ul li a.active { /* Placeholder for active link styling */
-  color: darkgreen; /* Darker green for hover/active */
+.bottom-nav ul li a.active { /* Styling for active link and hover */
+  color: black; /* Black text for contrast */
+  background-color: #39FF14; /* Neon Green background */
+  border-radius: 5px; /* Optional: rounded corners for active/hover state */
 }

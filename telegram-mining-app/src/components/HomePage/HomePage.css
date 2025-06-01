@@ -3,45 +3,96 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* padding-top: 20px; Removed, covered by global .content padding-top and .home-page padding */
-  /* color: #333; Removed, covered by global App.css */
+  /* Ensure it inherits background and text color from .home-page class in App.css */
 }
 
+/* h2 will inherit color from .home-page or global App.css */
 .home-page h2 {
-  /* color: green; Removed, covered by global App.css */
-  /* Additional specific styles for HomePage h2 can go here if needed */
+  margin-bottom: 15px; /* Added margin for spacing */
+}
+
+.stats-container { /* New container for stats */
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #39FF14;
+  border-radius: 5px;
+  background-color: #080808; /* Slightly different black for contrast */
+  display: inline-block; /* Fit content width */
+  min-width: 250px; /* Minimum width for better layout */
+}
+
+.stats-container p {
+  margin: 5px 0; /* Spacing for stat lines */
+  font-size: 1em; /* Adjusted font size */
+  color: #39FF14; /* Ensure neon green text */
 }
 
 .mining-circle-container {
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin-top: 20px; /* Adjusted margin */
+  margin-bottom: 30px; /* Adjusted margin */
 }
 
 .mining-circle {
   width: 200px;
   height: 200px;
-  background-color: #4CAF50; /* Green background - specific to this element */
+  background-color: black; /* Black background */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 5px solid darkgreen; /* Dark green border - specific to this element */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.1s ease; /* For click effect */
+  border: 5px solid #39FF14; /* Neon Green border */
+  box-shadow: 0 0 15px #39FF14; /* Neon Green glow effect */
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  position: relative; /* For z-indexing text */
+  overflow: hidden; /* Important if an inner fill element were to exceed bounds */
 }
+
+/* The background image conic-gradient handles the fill.
+   If an inner div was used for fill, it would be styled here. e.g.:
+.mining-circle-fill {
+  background-color: white;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transition: height 0.1s linear; / Smooth fill transition /
+}
+*/
 
 .mining-circle:active {
     transform: scale(0.95); /* Click effect */
+    box-shadow: 0 0 25px #39FF14, 0 0 10px #39FF14 inset; /* Neon green inset shadow */
 }
 
 .mining-text {
-  color: white; /* White text - specific to this element */
-  font-size: 1.5em;
+  color: #39FF14; /* Neon Green text */
+  font-size: 1.5em; /* Adjusted for potentially longer text like "Start Mining" */
   text-align: center;
+  z-index: 2; /* Ensure text is above the conic gradient fill */
+  position: relative; /* Needed for z-index to work on span */
+  background-color: rgba(0, 0, 0, 0.3); /* Slight dark background for text readability */
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 
-.home-page p {
+/* General paragraph styling within home-page, now handled by stats-container p */
+/* .home-page p {
   font-size: 1.2em;
-  color: #555; /* Slightly different from default #333, so keep it */
+  color: #39FF14;
+} */
+
+.mine-button {
+  /* Inherits global button styles from App.css */
+  /* Specific overrides for this button can go here if needed */
+  margin-top: 20px; /* Added margin for spacing */
+  padding: 12px 25px; /* Slightly larger button */
+  font-size: 1.1em; /* Larger font size */
+}
+
+.mine-button:disabled { /* Style for disabled button (e.g. when cycle is complete) */
+  background-color: #555;
+  color: #aaa;
+  border-color: #777;
+  cursor: not-allowed;
 }

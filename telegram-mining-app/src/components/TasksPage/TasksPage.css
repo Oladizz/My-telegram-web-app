@@ -1,1 +1,94 @@
 /* CSS for TasksPage */
+
+.tasks-page {
+  /* Inherits background and text color from .tasks-page class in App.css */
+  padding: 15px; /* Ensure consistent padding */
+}
+
+.tasks-page h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #39FF14; /* Ensure heading is neon green */
+}
+
+.tasks-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-item {
+  background-color: #0a0a0a; /* Dark background for task items */
+  border: 1px solid #39FF14; /* Neon green border */
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Space out info and actions */
+  align-items: center; /* Align items vertically */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.task-item.completed {
+  background-color: #1a1a1a; /* Darker background for completed tasks */
+  border-color: #2aaa0f; /* Darker green border for completed */
+  opacity: 0.7; /* Slightly faded */
+}
+
+.task-info {
+  flex-grow: 1; /* Allow info section to take available space */
+}
+
+.task-item h3 {
+  color: #39FF14; /* Neon green heading */
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.task-item p {
+  color: #cccccc; /* Light grey for task description */
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.task-points {
+  font-weight: bold;
+  color: #8eff70; /* Lighter neon green for points */
+}
+
+.task-actions {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically if needed or side-by-side */
+  align-items: flex-end; /* Align buttons to the right */
+  margin-left: 15px; /* Space between info and actions */
+}
+
+.task-actions button {
+  /* Inherits global button styles */
+  margin-top: 5px; /* Space between buttons if stacked */
+  padding: 8px 12px; /* Adjust padding for task buttons */
+  min-width: 150px; /* Minimum width for buttons */
+  text-align: center;
+}
+.task-action-button {
+  /* Specific styles for "Go to Task" if different from complete button */
+  background-color: #222; /* Example: different background */
+  color: #39FF14;
+  border: 1px solid #39FF14;
+}
+.task-action-button:hover {
+  background-color: #333;
+}
+
+
+.complete-button:disabled {
+  background-color: #2aaa0f; /* Darker green for completed state */
+  color: black;
+  border-color: #2aaa0f;
+  cursor: not-allowed;
+}
+
+.task-item.completed .complete-button {
+  background-color: #2aaa0f;
+  color: black;
+  border-color: #2aaa0f;
+}

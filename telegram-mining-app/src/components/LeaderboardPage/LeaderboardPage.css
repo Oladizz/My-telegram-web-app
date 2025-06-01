@@ -1,1 +1,78 @@
 /* CSS for LeaderboardPage */
+
+.leaderboard-page {
+  /* Inherits background and text color from .leaderboard-page class in App.css */
+  padding: 15px; /* Ensure consistent padding */
+}
+
+.leaderboard-page h2 {
+  text-align: center;
+  margin-bottom: 25px; /* Increased margin */
+  font-size: 2em; /* Larger font size for title */
+  color: #39FF14; /* Ensure heading is neon green */
+  text-shadow: 0 0 5px #39FF14; /* Subtle glow for the title */
+}
+
+.leaderboard-container {
+  margin: 0 auto; /* Center the container */
+  max-width: 800px; /* Max width for better readability on large screens */
+  overflow-x: auto; /* Allow horizontal scrolling on small screens if table is too wide */
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse; /* Changed from separate to collapse for cleaner look */
+  margin-top: 20px;
+  box-shadow: 0 0 10px #39FF14; /* Add a glow effect to the table */
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  border: 1px solid #2aaa0f; /* Darker neon green for cell borders */
+  padding: 12px 15px; /* Increased padding */
+  text-align: left;
+  color: #39FF14; /* Neon green text for table content */
+}
+
+.leaderboard-table th {
+  background-color: #111; /* Slightly lighter black for table header */
+  color: #8eff70; /* Lighter neon green for header text for emphasis */
+  font-size: 1.1em; /* Slightly larger font for header */
+  text-transform: uppercase; /* Uppercase header text */
+}
+
+.leaderboard-table tbody tr {
+  background-color: #080808; /* Very dark base for rows */
+  transition: background-color 0.3s ease;
+}
+
+.leaderboard-table tbody tr:nth-child(even) {
+  background-color: #000000; /* Pure black for even rows for contrast */
+}
+
+.leaderboard-table tbody tr:hover {
+  background-color: #1c1c1c; /* Slightly lighter black on row hover */
+  box-shadow: 0 0 8px #8eff70 inset; /* Inner glow on hover */
+}
+
+.leaderboard-table td:first-child { /* Rank column */
+  text-align: center;
+  font-weight: bold;
+  width: 80px; /* Fixed width for rank */
+}
+
+.leaderboard-table td:nth-child(2) { /* Username column */
+  font-style: italic;
+}
+
+.leaderboard-table td:last-child { /* Points column */
+  text-align: right;
+  font-weight: bold;
+  color: #8eff70; /* Lighter neon green for points */
+}
+
+/* Specific styling for user's rank or highlighted entries, if needed */
+.user-rank-highlight td { /* This class would be manually added in JS if needed */
+  font-weight: bold;
+  color: white;
+  background-color: #1a4d1a; /* Dark green highlight background */
+}

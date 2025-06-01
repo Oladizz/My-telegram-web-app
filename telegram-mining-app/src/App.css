@@ -7,35 +7,41 @@ body, html, #root, .App {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff; /* White background for the entire app */
-  color: #333333; /* Default text color */
+  background-color: black; /* Black background for the entire app */
+  color: #39FF14; /* Neon Green text */
   min-height: 100vh;
 }
 
 .App {
-  text-align: center; /* This was existing, kept it */
+  text-align: center;
+  background-color: black; /* Ensure App div also has black background */
+  color: #39FF14; /* Ensure App div text is Neon Green */
 }
 
 .content {
-  padding-bottom: 70px; /* Adjust based on nav bar height, existing */
-  padding-top: 15px; /* Added basic top padding for content area */
+  padding-bottom: 70px; /* Adjust based on nav bar height */
+  padding-top: 15px; /* Basic top padding for content area */
+  background-color: black; /* Ensure content area is black */
+  flex-grow: 1; /* Allows content to take up available space */
+  /* border-top: 1px solid #39FF14; /* Optional: border to separate header/content */
 }
 
 /* General link styling */
 a {
-  color: green;
+  color: #39FF14; /* Neon Green links */
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
+  color: #8eff70; /* Lighter Neon Green on hover */
 }
 
 /* General button styling */
 button {
-  background-color: green;
-  color: white;
-  border: none;
+  background-color: #39FF14; /* Neon Green buttons */
+  color: black; /* Black text on buttons */
+  border: 1px solid #39FF14; /* Neon Green border */
   padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
@@ -43,14 +49,16 @@ button {
 }
 
 button:hover {
-  background-color: darkgreen;
+  background-color: black; /* Black background on hover */
+  color: #39FF14; /* Neon Green text on hover */
+  border: 1px solid #39FF14;
 }
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
-  color: green; /* Green color for headings by default */
-  margin-top: 0; /* Default margin reset for headings */
-  margin-bottom: 0.5em; /* Default margin bottom for headings */
+  color: #39FF14; /* Neon Green for headings */
+  margin-top: 0;
+  margin-bottom: 0.5em;
 }
 
 /* Ensure page components fill available space if needed and have basic padding */
@@ -58,38 +66,43 @@ h1, h2, h3, h4, h5, h6 {
 .home-page, .tasks-page, .referral-page, .purchase-page, .leaderboard-page, .admin-page {
     padding: 15px; /* Basic padding for all pages */
     text-align: left; /* Default text alignment for page content */
-    /* min-height: calc(100vh - 70px - 30px); /* (viewport_height - nav_height - (top_padding + bottom_padding_of_content_area)) */
-    /* The above min-height might be too aggressive if content itself is short.
-       It's better to let content dictate height and use padding for spacing.
-       The padding-bottom on .content already handles space for the nav bar.
-    */
+    background-color: black; /* Ensure page backgrounds are black */
+    color: #39FF14; /* Ensure page text is neon green */
+    /* min-height: calc(100vh - 70px - 30px); */
 }
 
 
 /* Original create-react-app styles - can be removed or kept if specific elements are used */
+/* Removing .App-logo and related animations for this theme */
+/*
 .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
-
+*/
+/*
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
-
-.App-header { /* This class might be unused now */
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+*/
+.App-header { /* This class is used in App.js for game title and user info */
+  background-color: black; /* Match App background */
+  padding: 20px; /* Copied from original plan */
+  color: #39FF14; /* Neon Green text */
+  display: flex; /* Copied from original plan */
+  justify-content: space-between; /* Copied from original plan */
+  align-items: center; /* Copied from original plan */
+  border-bottom: 1px solid #39FF14; /* Neon Green border */
 }
 
-.App-link { /* This class might be unused now */
+.App-header h1 { /* Ensure h1 within App-header is also styled */
+  color: #39FF14;
+  margin: 0;
+}
+/*
+.App-link { / This class might be unused now /
   color: #61dafb;
 }
 
@@ -101,3 +114,4 @@ h1, h2, h3, h4, h5, h6 {
     transform: rotate(360deg);
   }
 }
+*/

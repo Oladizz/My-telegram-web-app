@@ -1,0 +1,83 @@
+/* CSS for PromotionalPage */
+
+.promotional-page {
+  padding: 20px;
+  text-align: center;
+  /* Inherits background and text color from .promotional-page class (if defined in App.css)
+     or global styles from App.css/index.css */
+  color: #39FF14; /* Ensure neon green text if not inherited properly */
+  background-color: black; /* Ensure black background */
+}
+
+.promotional-page h2 {
+  font-size: 2.2em;
+  color: #39FF14;
+  margin-bottom: 30px;
+  text-shadow: 0 0 7px #39FF14;
+}
+
+.promo-content {
+  background-color: #0a0a0a; /* Slightly off-black for the main content box */
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid #39FF14;
+  margin-bottom: 30px;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.3); /* Subtle glow */
+  display: inline-block; /* Center the box */
+  max-width: 500px; /* Max width of the content area */
+  width: 90%; /* Responsive width */
+}
+
+.promo-image-placeholder {
+  width: 150px;
+  height: 150px;
+  background-color: #111; /* Dark grey for placeholder background */
+  border: 2px dashed #39FF14; /* Dashed neon green border */
+  border-radius: 8px;
+  margin: 0 auto 25px auto; /* Center the placeholder */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5em; /* For emoji or icon */
+  color: #39FF14;
+}
+
+.promo-description {
+  font-size: 1.1em;
+  color: #cccccc; /* Lighter grey for description */
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.promo-button {
+  /* Inherits global button styles from App.css */
+  padding: 15px 30px; /* Larger padding for emphasis */
+  font-size: 1.2em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  /* Additional specific styles for promo button if needed:
+  background-color: #8eff70; / Lighter green for more pop /
+  color: black;
+  border: 1px solid #8eff70;
+  */
+}
+
+/* .promo-button:hover {
+  background-color: #39FF14;
+  color: black;
+  border-color: #39FF14;
+} */
+
+.more-promos-soon {
+  margin-top: 40px;
+  padding: 15px;
+  background-color: #050505;
+  border-top: 1px solid #39FF14;
+  border-bottom: 1px solid #39FF14;
+}
+
+.more-promos-soon p {
+  font-size: 1em;
+  color: #8eff70; /* Lighter neon green */
+  font-style: italic;
+}

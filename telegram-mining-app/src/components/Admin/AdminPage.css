@@ -1,36 +1,189 @@
 .admin-page {
-  /* padding: 20px; Removed, uses global .admin-page padding from App.css */
-  /* color: #333; Removed, covered by global App.css */
+  /* Inherits background and text color from .admin-page class in App.css */
 }
 
 .admin-page h2 {
   text-align: center;
-  /* color: green; Removed, covered by global App.css */
+  /* color will be inherited from .admin-page or global App.css */
   margin-bottom: 30px;
 }
 
 .admin-section {
-  background-color: #f9f9f9; /* Light background for sections */
-  border: 1px solid #ddd;
+  background-color: #111; /* Slightly lighter black for sections */
+  border: 1px solid #39FF14; /* Neon green border */
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 5px;
 }
 
 .admin-section h3 {
-  color: #333; /* Specific to admin section, overrides global green for h3 */
+  color: #39FF14; /* Neon green for section headings */
   margin-top: 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #39FF14; /* Neon green border */
   padding-bottom: 10px;
   margin-bottom: 15px;
 }
 
+/* Buttons and inputs will inherit global styles.
+   Specific adjustments can be made here if needed. */
 .admin-search-input {
   padding: 8px;
   margin-top: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #39FF14; /* Neon green border */
   border-radius: 4px;
   width: 100%;
   max-width: 300px; /* Limit width */
   box-sizing: border-box;
+  background-color: black; /* Black background */
+  color: #39FF14; /* Neon green text */
+}
+
+.admin-search-input::placeholder {
+  color: #2aaa0f; /* Darker neon green for placeholder */
+}
+
+/* Admin Page Specific Titles */
+.admin-page h2 {
+  font-size: 2em; /* Consistent with Leaderboard title */
+  text-shadow: 0 0 5px #39FF14; /* Subtle glow */
+  margin-bottom: 25px;
+}
+
+.admin-section h3 {
+  font-size: 1.5em;
+  margin-bottom: 20px; /* More space below section titles */
+}
+
+.admin-section h4 { /* Styling for sub-headings like "Add New Task" */
+  color: #8eff70; /* Lighter neon green */
+  font-size: 1.2em;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #2aaa0f; /* Dashed darker green border */
+  padding-bottom: 5px;
+}
+
+/* Admin Form Styling */
+.admin-form {
+  background-color: #0a0a0a; /* Darker background for forms */
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid #2aaa0f; /* Darker green border for forms */
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  color: #39FF14; /* Neon green labels */
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.admin-form input[type="text"],
+.admin-form input[type="number"],
+.admin-form textarea {
+  width: calc(100% - 18px); /* Full width minus padding/border */
+  padding: 10px;
+  background-color: black;
+  border: 1px solid #39FF14;
+  color: #39FF14;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.admin-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.admin-form input[type="text"]::placeholder,
+.admin-form input[type="number"]::placeholder,
+.admin-form textarea::placeholder {
+  color: #2aaa0f; /* Darker neon green for placeholders */
+}
+
+/* Admin Buttons (General and Specific) */
+.admin-button {
+  /* Inherits global button style if not overridden by more specific like .task-actions button */
+  /* This can be a general class for admin page buttons if needed */
+  padding: 10px 20px;
+  font-size: 1em;
+}
+
+.admin-button.search-button { /* Specific for search button next to input */
+  margin-left: 10px;
+  vertical-align: top; /* Align with the search input */
+  margin-top: 10px; /* Match search input margin-top */
+}
+
+
+/* Placeholder List Styling */
+.admin-list-placeholder {
+  padding: 10px;
+  background-color: #050505; /* Very dark background for lists */
+  border-radius: 4px;
+  border: 1px dashed #2aaa0f; /* Dashed border to indicate placeholder */
+}
+
+.admin-list-placeholder p {
+  font-style: italic;
+  color: #888; /* Grey text for placeholder notes */
+  text-align: center;
+  margin-top: 10px;
+}
+
+.admin-list-item {
+  background-color: #111;
+  border: 1px solid #39FF14;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ccc; /* Default text color for items */
+}
+
+.admin-list-item span { /* Text content within the list item */
+  flex-grow: 1;
+}
+
+.admin-list-item div { /* Container for buttons */
+  display: flex;
+  gap: 10px; /* Space between buttons */
+}
+
+.admin-button-small {
+  /* Inherits global button styles but can be made smaller */
+  padding: 5px 10px;
+  font-size: 0.8em;
+}
+
+.admin-button-small.edit {
+  /* Specific style for edit button if needed */
+  /* background-color: #yourColor; */
+}
+
+.admin-button-small.delete {
+  background-color: #500a0a; /* Dark red for delete indication */
+  border-color: #801f1f;
+  color: #ff9090;
+}
+.admin-button-small.delete:hover {
+  background-color: #701010;
+  border-color: #a03030;
+  color: white;
+}
+
+.admin-button-small.view {
+  /* Specific style for view button if needed */
+}
+
+/* Ensure sections are clearly separated */
+.task-management {
+  margin-bottom: 30px; /* Extra margin after task management */
 }

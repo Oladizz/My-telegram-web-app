@@ -1,16 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'; // Changed Link to NavLink
 import './NavigationBar.css';
 
 function NavigationBar() {
   return (
     <nav className="bottom-nav">
       <ul>
-        <li><Link to="/">Home</Link></li>
-        <li><Link to="/tasks">Tasks</Link></li>
-        <li><Link to="/referrals">Referrals</Link></li>
-        <li><Link to="/purchase">Shop</Link></li>
-        <li><Link to="/leaderboard">Leaderboard</Link></li>
+        <li><NavLink to="/" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Home</NavLink></li>
+        <li><NavLink to="/tasks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Tasks</NavLink></li>
+        <li><NavLink to="/referrals" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Referrals</NavLink></li>
+        <li><NavLink to="/purchase" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Shop</NavLink></li>
+        <li><NavLink to="/promo" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Boosters</NavLink></li> {/* Added Boosters (Promo) link */}
+        <li><NavLink to="/leaderboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Leaderboard</NavLink></li>
       </ul>
     </nav>
   );
